@@ -2,6 +2,10 @@
 
 Small browser app that reads a KSeF-style XML invoice, shows a structured preview, and exports a PDF.
 
+## Built with AI
+
+This app was coded with the help of an AI agent.
+
 ## Live demo
 
 - https://lampersky.github.io/ksefik/

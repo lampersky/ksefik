@@ -553,23 +553,59 @@ async function exportPdf() {
   };
 
   const drawTitle = () => {
-    const headerHeight = 68;
     const qrSize = 50;
     const qrPadding = 6;
-    const qrBlockWidth = qrImageDataUrl ? qrSize + qrPadding * 2 : 0;
-    const rightTextX = page.width - page.margin - qrBlockWidth - 130;
+    const contentX = page.margin + 14;
+    const contentWidth = page.width - page.margin * 2 - 28;
+    const qrReservedWidth = qrImageDataUrl ? qrSize + qrPadding * 2 + 8 : 0;
+    let rightBlockWidth = Math.min(170, Math.max(120, contentWidth * 0.34));
+    let leftMaxWidth = contentWidth - qrReservedWidth - rightBlockWidth - 12;
+    if (leftMaxWidth < 140) {
+      const widthDeficit = 140 - leftMaxWidth;
+      rightBlockWidth = Math.max(90, rightBlockWidth - widthDeficit);
+      leftMaxWidth = contentWidth - qrReservedWidth - rightBlockWidth - 12;
+    }
+    const rightTextX = contentX + leftMaxWidth + 12;
+
+    doc.setFont(PDF_FONT_FAMILY, "bold");
+    doc.setFontSize(18);
+    const titleLines = doc.splitTextToSize(t("pdf.headerTitle"), leftMaxWidth);
+    doc.setFont(PDF_FONT_FAMILY, "normal");
+    doc.setFontSize(10);
+    const numberLines = doc.splitTextToSize(`${t("field.number")}: ${textOrDash(invoice.meta.number)}`, leftMaxWidth);
+    const issueDateLines = doc.splitTextToSize(`${t("field.issueDate")}: ${textOrDash(invoice.meta.issueDate)}`, rightBlockWidth);
+    const dueDateLines = doc.splitTextToSize(`${t("field.dueDate")}: ${textOrDash(invoice.meta.dueDate)}`, rightBlockWidth);
+    const leftBlockBottom = y + 24 + titleLines.length * 16 + numberLines.length * 10;
+    const rightBlockBottom = y + 26 + issueDateLines.length * 10 + 4 + dueDateLines.length * 10;
+    const headerHeight = Math.max(68, Math.ceil(Math.max(leftBlockBottom, rightBlockBottom) - y + 10));
 
     doc.setFillColor(25, 55, 109);
     doc.roundedRect(page.margin, y, page.width - page.margin * 2, headerHeight, 6, 6, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont(PDF_FONT_FAMILY, "bold");
     doc.setFontSize(18);
-    doc.text(t("pdf.headerTitle"), page.margin + 14, y + 28);
+    let titleY = y + 24;
+    for (const line of titleLines) {
+      doc.text(line, contentX, titleY);
+      titleY += 16;
+    }
     doc.setFontSize(10);
     doc.setFont(PDF_FONT_FAMILY, "normal");
-    doc.text(`${t("field.number")}: ${textOrDash(invoice.meta.number)}`, page.margin + 14, y + 46);
-    doc.text(`${t("field.issueDate")}: ${textOrDash(invoice.meta.issueDate)}`, rightTextX, y + 28);
-    doc.text(`${t("field.dueDate")}: ${textOrDash(invoice.meta.dueDate)}`, rightTextX, y + 46);
+    let numberY = titleY;
+    for (const line of numberLines) {
+      doc.text(line, contentX, numberY);
+      numberY += 10;
+    }
+    let rightY = y + 26;
+    for (const line of issueDateLines) {
+      doc.text(line, rightTextX, rightY);
+      rightY += 10;
+    }
+    rightY += 4;
+    for (const line of dueDateLines) {
+      doc.text(line, rightTextX, rightY);
+      rightY += 10;
+    }
     if (qrImageDataUrl) {
       doc.setFillColor(255, 255, 255);
       const qrX = page.width - page.margin - qrSize - qrPadding;
@@ -586,10 +622,15 @@ async function exportPdf() {
     doc.roundedRect(x, boxY, width, height, 4, 4);
     doc.setFont(PDF_FONT_FAMILY, "bold");
     doc.setFontSize(11);
-    doc.text(title, x + 10, boxY + 16);
+    const titleLines = doc.splitTextToSize(String(title), width - 20);
+    let titleY = boxY + 16;
+    for (const titleLine of titleLines) {
+      doc.text(titleLine, x + 10, titleY);
+      titleY += 11;
+    }
     doc.setFont(PDF_FONT_FAMILY, "normal");
     doc.setFontSize(9.5);
-    let lineY = boxY + 30;
+    let lineY = titleY + 3;
     for (const line of lines) {
       const wrapped = doc.splitTextToSize(String(line), width - 20);
       for (const wrappedLine of wrapped) {
@@ -633,7 +674,7 @@ async function exportPdf() {
   ], page.margin, y, page.width - page.margin * 2, 64);
 
   y += 84;
-  checkPage(40);
+  checkPage(56);
 
   const colWidths = [30, 170, 40, 72, 55, 82, 83];
   const headers = [t("table.no"), t("table.description"), t("table.qty"), t("table.unit"), t("table.vat"), t("table.net"), t("table.value")];
@@ -641,20 +682,27 @@ async function exportPdf() {
   const tableWidth = colWidths.reduce((sum, n) => sum + n, 0);
 
   const drawTableHeader = () => {
+    const headerLines = headers.map((header, index) => doc.splitTextToSize(header, colWidths[index] - 8));
+    const maxHeaderLines = Math.max(...headerLines.map((lines) => lines.length));
+    const headerHeight = Math.max(22, maxHeaderLines * 9 + 8);
     doc.setFillColor(238, 242, 247);
-    doc.rect(tableX, y, tableWidth, 22, "F");
+    doc.rect(tableX, y, tableWidth, headerHeight, "F");
     doc.setDrawColor(120, 120, 120);
-    doc.rect(tableX, y, tableWidth, 22);
+    doc.rect(tableX, y, tableWidth, headerHeight);
     let x = tableX;
     doc.setFont(PDF_FONT_FAMILY, "bold");
     doc.setFontSize(9);
     for (let i = 0; i < headers.length; i += 1) {
       const w = colWidths[i];
-      if (i > 0) doc.line(x, y, x, y + 22);
-      doc.text(headers[i], x + 4, y + 14);
+      if (i > 0) doc.line(x, y, x, y + headerHeight);
+      let headerY = y + 12;
+      for (const headerLine of headerLines[i]) {
+        doc.text(headerLine, x + 4, headerY);
+        headerY += 9;
+      }
       x += w;
     }
-    y += 22;
+    y += headerHeight;
   };
 
   drawTableHeader();
