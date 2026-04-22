@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice XML to PDF</title>
+  <link rel="stylesheet" href="invoice-preview.css" />
+</head>
+<body>
+  <main class="app">
+    <div class="toolbar">
+      <div>
+        <h1 id="appTitle">Invoice XML to PDF</h1>
+        <p id="appSubtitle" class="subtitle">Drop a KSeF-style XML invoice file or use Browse, preview extracted fields, then export PDF.</p>
+      </div>
+      <div class="lang-switcher">
+        <label id="langLabel" for="langSelect">Language</label>
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="pl">Polski</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Drop XML invoice file here">
+      <p id="dropzoneText"><strong>Drop XML file here</strong> or click to browse</p>
+    </div>
+
+    <input id="fileInput" type="file" accept=".xml,text/xml,application/xml" />
+
+    <div class="controls">
+      <button id="browseBtn" type="button">Browse XML</button>
+      <button id="exportBtn" type="button" disabled>Export PDF</button>
+    </div>
+
+    <div id="fileHash" class="muted"></div>
+    <div id="error" class="error"></div>
+
+    <section class="preview" id="preview">
+      <p class="muted" id="previewEmpty">No invoice loaded.</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="invoice-preview.js"></script>
+</body>
+</html>
