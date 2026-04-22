@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBP Exchange Rate Checker</title>
+  <link rel="stylesheet" href="exchange-rate.css" />
+</head>
+<body>
+  <main class="app">
+    <div class="toolbar">
+      <div>
+        <h1>NBP Exchange Rate Checker</h1>
+        <p class="subtitle">Pick tax point date and currency to read NBP Table A average exchange rate (Mid).</p>
+      </div>
+    </div>
+
+    <section class="preview">
+      <div class="grid">
+        <article class="card">
+          <h3>Inputs</h3>
+          <div class="field">
+            <label for="taxPointDate">Tax point date</label>
+            <input id="taxPointDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="currencySelect">Currency</label>
+            <select id="currencySelect">
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP" selected>GBP</option>
+              <option value="CHF">CHF</option>
+              <option value="CZK">CZK</option>
+              <option value="NOK">NOK</option>
+              <option value="SEK">SEK</option>
+              <option value="DKK">DKK</option>
+              <option value="CAD">CAD</option>
+              <option value="JPY">JPY</option>
+            </select>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>NBP Rate (Mid)</h3>
+          <div id="midValue" class="rate-value">-</div>
+          <p id="rateMeta" class="muted">Choose date and currency to load rate.</p>
+        </article>
+      </div>
+
+      <div id="error" class="error"></div>
+
+      <article class="card explanation">
+        <h3>The key rule (VAT Act)</h3>
+        <p>You must use the exchange rate from the day preceding the tax point (moment of supply).</p>
+        <p>This usually means the NBP average rate (Table A) published by Narodowy Bank Polski.</p>
+        <p>Specifically: the last working day before the tax liability arises.</p>
+      </article>
+    </section>
+  </main>
+
+  <script src="exchange-rate.js"></script>
+</body>
+</html>
