@@ -110,9 +110,9 @@ async function ensurePdfUnicodeFont(doc) {
 
       const [regularBuffer, boldBuffer] = await Promise.all([regularRes.arrayBuffer(), boldRes.arrayBuffer()]);
       doc.addFileToVFS("NotoSans-Regular.ttf", arrayBufferToBase64(regularBuffer));
-      doc.addFont("NotoSans-Regular.ttf", PDF_FONT_FAMILY, "normal");
+      doc.addFont("NotoSans-Regular.ttf", PDF_FONT_FAMILY, "normal", "Identity-H");
       doc.addFileToVFS("NotoSans-Bold.ttf", arrayBufferToBase64(boldBuffer));
-      doc.addFont("NotoSans-Bold.ttf", PDF_FONT_FAMILY, "bold");
+      doc.addFont("NotoSans-Bold.ttf", PDF_FONT_FAMILY, "bold", "Identity-H");
     })().catch((err) => {
       pdfFontLoadPromise = null;
       throw err;
