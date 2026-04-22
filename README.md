@@ -2,6 +2,10 @@
 
 Small browser app that reads a KSeF-style XML invoice, shows a structured preview, and exports a PDF.
 
+## Live demo
+
+- https://lampersky.github.io/ksefik/
+
 ## Features
 
 - Drag and drop or browse for an XML file
