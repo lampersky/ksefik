@@ -20,6 +20,12 @@
           <option value="en">English</option>
           <option value="pl">Polski</option>
         </select>
+        <label for="pdfNamePatternSelect">PDF name</label>
+        <select id="pdfNamePatternSelect" aria-label="PDF filename pattern">
+          <option value="seller_month_year" selected>{seller_name}_{Month}_{Year}.PDF</option>
+          <option value="seller_clean_number">{seller_name}_{cleanNumber}.PDF</option>
+          <option value="invoice_clean_number">invoice-{cleanNumber}.PDF</option>
+        </select>
       </div>
     </div>
 

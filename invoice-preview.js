@@ -9,6 +9,7 @@ const appTitle = document.getElementById("appTitle");
 const appSubtitle = document.getElementById("appSubtitle");
 const langLabel = document.getElementById("langLabel");
 const langSelect = document.getElementById("langSelect");
+const pdfNamePatternSelect = document.getElementById("pdfNamePatternSelect");
 const dropzoneText = document.getElementById("dropzoneText");
 
 let currentInvoice = null;
@@ -191,6 +192,37 @@ function formatGeneratedTimestamp(value) {
   const match = raw.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})/);
   if (match) return `${match[1]} ${match[2]}`;
   return raw;
+}
+
+function sanitizeFilenamePart(value, fallback = "export") {
+  const normalized = String(value || "")
+    .normalize("NFKD")
+    .replace(/[^\w.-]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return normalized || fallback;
+}
+
+function buildPdfFilename(invoice) {
+  const selectedPattern = pdfNamePatternSelect?.value || "seller_month_year";
+  const sellerName = sanitizeFilenamePart(invoice?.seller?.name, "seller");
+  const cleanNumber = sanitizeFilenamePart(invoice?.meta?.number, "export");
+  const issueDate = String(invoice?.meta?.issueDate || "").trim();
+  const parsedIssueDate = issueDate ? new Date(`${issueDate}T00:00:00`) : null;
+  const isValidIssueDate = parsedIssueDate && !Number.isNaN(parsedIssueDate.getTime());
+  const monthName = isValidIssueDate
+    ? new Intl.DateTimeFormat(currentLang === "pl" ? "pl-PL" : "en-US", { month: "long" }).format(parsedIssueDate)
+    : "month";
+  const year = isValidIssueDate ? String(parsedIssueDate.getFullYear()) : "year";
+  const cleanMonth = sanitizeFilenamePart(monthName, "month");
+  const cleanYear = sanitizeFilenamePart(year, "year");
+
+  if (selectedPattern === "seller_clean_number") {
+    return `${sellerName}_${cleanNumber}.PDF`;
+  }
+  if (selectedPattern === "invoice_clean_number") {
+    return `invoice-${cleanNumber}.PDF`;
+  }
+  return `${sellerName}_${cleanMonth}_${cleanYear}.PDF`;
 }
 
 function vatRateExplanation(code) {
@@ -766,8 +798,7 @@ async function exportPdf() {
   doc.setTextColor(95, 95, 95);
   doc.text(`${t("footer.generated")} ${textOrDash(invoice.meta.generatedAt)} | ${textOrDash(invoice.meta.systemInfo)} | ${textOrDash(currentUploadedFileBaseName)}`, page.margin, page.height - 16);
 
-  const cleanNumber = textOrDash(invoice.meta.number).replace(/[^\w.-]+/g, "_");
-  doc.save(`invoice-${cleanNumber || "export"}.pdf`);
+  doc.save(buildPdfFilename(invoice));
 }
 
 function handleDropEvent(event) {
