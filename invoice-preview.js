@@ -20,6 +20,10 @@ let pdfFontLoadPromise = null;
 let i18n = {};
 let currentLang = "en";
 const PDF_FONT_FAMILY = "NotoSans";
+const STORAGE_KEYS = {
+  language: "invoicePreview.language",
+  pdfNamePattern: "invoicePreview.pdfNamePattern"
+};
 
 const textOrDash = (v) => (v && String(v).trim().length ? String(v).trim() : "-");
 
@@ -29,6 +33,27 @@ function t(key, vars = {}) {
     value = value.replaceAll(`{${name}}`, String(replacement));
   }
   return value;
+}
+
+function readStoredValue(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (_err) {
+    return null;
+  }
+}
+
+function writeStoredValue(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (_err) {
+    // Ignore storage errors (private mode/restricted storage).
+  }
+}
+
+function hasOptionValue(select, value) {
+  if (!select || !value) return false;
+  return Array.from(select.options).some((option) => option.value === value);
 }
 
 function setPreviewEmpty() {
@@ -826,6 +851,19 @@ dropzone.addEventListener("dragleave", () => {
   dropzone.classList.remove("drag-over");
 });
 dropzone.addEventListener("drop", handleDropEvent);
-langSelect.addEventListener("change", () => applyLanguage(langSelect.value));
+langSelect.addEventListener("change", () => {
+  writeStoredValue(STORAGE_KEYS.language, langSelect.value);
+  applyLanguage(langSelect.value);
+});
+pdfNamePatternSelect?.addEventListener("change", () => {
+  writeStoredValue(STORAGE_KEYS.pdfNamePattern, pdfNamePatternSelect.value);
+});
 
-applyLanguage("en");
+const storedPdfNamePattern = readStoredValue(STORAGE_KEYS.pdfNamePattern);
+if (hasOptionValue(pdfNamePatternSelect, storedPdfNamePattern)) {
+  pdfNamePatternSelect.value = storedPdfNamePattern;
+}
+
+const storedLanguage = readStoredValue(STORAGE_KEYS.language);
+const initialLanguage = hasOptionValue(langSelect, storedLanguage) ? storedLanguage : "en";
+applyLanguage(initialLanguage);
